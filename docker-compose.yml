@@ -1,0 +1,24 @@
+services:
+  application:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/var/www
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+    
+  mysql:
+    image: bitnami/mysql:latest
+    ports:
+      - '3307:3306'
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - MYSQL_DATABASE=teste
+    volumes:
+      - teste_data:/bitnami/mysql
+
+volumes:
+  teste_data:
