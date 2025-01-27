@@ -13,21 +13,17 @@ RUN curl -sSL https://github.com/jwilder/dockerize/releases/download/v0.6.1/dock
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-COPY . .
-
 COPY . /var/www
 
-RUN composer install --no-dev --optimize-autoloader
+WORKDIR /var/www
 
-RUN apk add --no-cache nodejs npm
-
-RUN php artisan config:cache \
+RUN composer install --no-dev --optimize-autoloader \
+    && apk add --no-cache nodejs npm \
+    && php artisan config:cache \
     && php artisan route:cache \
     && php artisan view:cache \
     && php artisan key:generate
 
-WORKDIR /var/www
-
 EXPOSE 8080
 
-CMD ["php", "/var/www/artisan", "serve", "--host=0.0.0.0", "--port=8080"]
+CMD ["sh", "-c", "dockerize -wait tcp://${DB_HOST:-mysql}:${DB_PORT:-3306} -timeout 60s sh -c 'php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8080'"]
